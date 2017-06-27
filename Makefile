@@ -26,4 +26,4 @@ my:./lib
 	./sbin/start-smart.sh -D dfs.smart.namenode.rpcserver=hdfs://localhost:9000
 
 ./lib:${rootdir}/lib
-	rm -fr ./lib; cp -r ${rootdir}/lib .
+	rm -fr ./lib; rm -fr ./conf; cp -r ${rootdir}/lib .; cp -r ${rootdir}/conf .
