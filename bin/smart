@@ -1,0 +1,278 @@
+#!/usr/bin/env bash
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+MYNAME="${BASH_SOURCE-$0}"
+SMART_SHELL_EXECNAME="${MYNAME##*/}"
+
+## @description  build up the hdfs command's usage text.
+## @audience     public
+## @stability    stable
+## @replaceable  no
+function hadoop_usage
+{
+  hadoop_add_option "--buildpaths" "attempt to add class files from build tree"
+  hadoop_add_option "--daemon (start|status|stop)" "operate on a daemon"
+  hadoop_add_option "--hostnames list[,of,host,names]" "hosts to use in worker mode"
+  hadoop_add_option "--loglevel level" "set the log4j level for this command"
+  hadoop_add_option "--hosts filename" "list of hosts to use in worker mode"
+  hadoop_add_option "--workers" "turn on worker mode"
+
+
+  hadoop_add_subcommand "classpath" "prints the class path needed to get the hadoop jar and the required libraries"
+  hadoop_add_subcommand "datanode" "run a DFS datanode"
+  hadoop_add_subcommand "debug" "run a Debug Admin to execute HDFS debug commands"
+  hadoop_add_subcommand "dfs" "run a filesystem command on the file system"
+  hadoop_add_subcommand "dfsadmin" "run a DFS admin client"
+  hadoop_add_subcommand "envvars" "display computed Hadoop environment variables"
+  hadoop_add_subcommand "ec" "run a HDFS ErasureCoding CLI"
+  hadoop_add_subcommand "fetchdt" "fetch a delegation token from the NameNode"
+  hadoop_add_subcommand "fsck" "run a DFS filesystem checking utility"
+  hadoop_add_subcommand "getconf" "get config values from configuration"
+  hadoop_add_subcommand "groups" "get the groups which users belong to"
+  hadoop_add_subcommand "haadmin" "run a DFS HA admin client"
+  hadoop_add_subcommand "jmxget" "get JMX exported values from NameNode or DataNode."
+  hadoop_add_subcommand "journalnode" "run the DFS journalnode"
+  hadoop_add_subcommand "lsSnapshottableDir" "list all snapshottable dirs owned by the current user"
+  hadoop_add_subcommand "mover" "run a utility to move block replicas across storage types"
+  hadoop_add_subcommand "namenode" "run the DFS namenode"
+  hadoop_add_subcommand "nfs3" "run an NFS version 3 gateway"
+  hadoop_add_subcommand "oev" "apply the offline edits viewer to an edits file"
+  hadoop_add_subcommand "oiv" "apply the offline fsimage viewer to an fsimage"
+  hadoop_add_subcommand "oiv_legacy" "apply the offline fsimage viewer to a legacy fsimage"
+  hadoop_add_subcommand "portmap" "run a portmap service"
+  hadoop_add_subcommand "secondarynamenode" "run the DFS secondary namenode"
+  hadoop_add_subcommand "snapshotDiff" "diff two snapshots of a directory or diff the current directory contents with a snapshot"
+  hadoop_add_subcommand "storagepolicies" "list/get/set block storage policies"
+  hadoop_add_subcommand "version" "print the version"
+  hadoop_add_subcommand "zkfc" "run the ZK Failover Controller daemon"
+  hadoop_generate_usage "${SMART_SHELL_EXECNAME}" false
+}
+
+## @description  Default command handler for hadoop command
+## @audience     public
+## @stability    stable
+## @replaceable  no
+## @param        CLI arguments
+function hdfscmd_case
+{
+  subcmd=$1
+  shift
+
+  case ${subcmd} in
+    balancer)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.server.balancer.Balancer
+    ;;
+    cacheadmin)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.CacheAdmin
+    ;;
+    classpath)
+      hadoop_do_classpath_subcommand SMART_CLASSNAME "$@"
+    ;;
+    crypto)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.CryptoAdmin
+    ;;
+    datanode)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_SECURE_CLASSNAME="org.apache.hadoop.hdfs.server.datanode.SecureDataNodeStarter"
+      SMART_CLASSNAME='org.apache.hadoop.hdfs.server.datanode.DataNode'
+      hadoop_deprecate_envvar SMART_SECURE_DN_PID_DIR SMART_SECURE_PID_DIR
+      hadoop_deprecate_envvar SMART_SECURE_DN_LOG_DIR SMART_SECURE_LOG_DIR
+    ;;
+    debug)
+      SMART_CLASSNAME='org.apache.hadoop.hdfs.tools.DebugAdmin'
+    ;;
+    dfs)
+      SMART_CLASSNAME=org.apache.hadoop.fs.FsShell
+    ;;
+    dfsadmin)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.DFSAdmin
+    ;;
+    diskbalancer)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.DiskBalancerCLI
+    ;;
+    envvars)
+      echo "JAVA_HOME='${JAVA_HOME}'"
+      echo "SMART_HDFS_HOME='${SMART_HDFS_HOME}'"
+      echo "HDFS_DIR='${HDFS_DIR}'"
+      echo "HDFS_LIB_JARS_DIR='${HDFS_LIB_JARS_DIR}'"
+      echo "SMART_CONF_DIR='${SMART_CONF_DIR}'"
+      echo "SMART_TOOLS_HOME='${SMART_TOOLS_HOME}'"
+      echo "SMART_TOOLS_DIR='${SMART_TOOLS_DIR}'"
+      echo "SMART_TOOLS_LIB_JARS_DIR='${SMART_TOOLS_LIB_JARS_DIR}'"
+      exit 0
+    ;;
+    ec)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.ECAdmin
+    ;;
+    fetchdt)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.DelegationTokenFetcher
+    ;;
+    fsck)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.DFSck
+    ;;
+    getconf)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.GetConf
+    ;;
+    groups)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.GetGroups
+    ;;
+    haadmin)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.DFSHAAdmin
+    ;;
+    journalnode)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_CLASSNAME='org.apache.hadoop.hdfs.qjournal.server.JournalNode'
+    ;;
+    jmxget)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.JMXGet
+    ;;
+    lsSnapshottableDir)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.snapshot.LsSnapshottableDir
+    ;;
+    mover)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.server.mover.Mover
+    ;;
+    namenode)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_CLASSNAME='org.apache.hadoop.hdfs.server.namenode.NameNode'
+      hadoop_add_param SMART_OPTS hdfs.audit.logger "-Dhdfs.audit.logger=${HDFS_AUDIT_LOGGER}"
+    ;;
+    nfs3)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_SECURE_CLASSNAME=org.apache.hadoop.hdfs.nfs.nfs3.PrivilegedNfsGatewayStarter
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.nfs.nfs3.Nfs3
+      hadoop_deprecate_envvar SMART_SECURE_NFS3_LOG_DIR SMART_SECURE_LOG_DIR
+      hadoop_deprecate_envvar SMART_SECURE_NFS3_PID_DIR SMART_SECURE_PID_DIR
+    ;;
+    oev)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.offlineEditsViewer.OfflineEditsViewer
+    ;;
+    oiv)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.offlineImageViewer.OfflineImageViewerPB
+    ;;
+    oiv_legacy)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.offlineImageViewer.OfflineImageViewer
+    ;;
+    portmap)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_CLASSNAME=org.apache.hadoop.portmap.Portmap
+    ;;
+    secondarynamenode)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_CLASSNAME='org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode'
+      hadoop_add_param SMART_OPTS hdfs.audit.logger "-Dhdfs.audit.logger=${HDFS_AUDIT_LOGGER}"
+    ;;
+    snapshotDiff)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.snapshot.SnapshotDiff
+    ;;
+    storagepolicies)
+      SMART_CLASSNAME=org.apache.hadoop.hdfs.tools.StoragePolicyAdmin
+    ;;
+    version)
+      SMART_CLASSNAME=org.apache.hadoop.util.VersionInfo
+    ;;
+    zkfc)
+      SMART_SUBCMD_SUPPORTDAEMONIZATION="true"
+      SMART_CLASSNAME='org.apache.hadoop.hdfs.tools.DFSZKFailoverController'
+    ;;
+    *)
+      SMART_CLASSNAME="${subcmd}"
+      if ! hadoop_validate_classname "${SMART_CLASSNAME}"; then
+        hadoop_exit_with_usage 1
+      fi
+    ;;
+  esac
+}
+
+echo "AAAAAAAAAAAA00000"
+
+# let's locate libexec...
+if [[ -n "${SMART_HOME}" ]]; then
+  SMART_DEFAULT_LIBEXEC_DIR="${SMART_HOME}/libexec"
+else
+  bin=$(cd -P -- "$(dirname -- "${MYNAME}")" >/dev/null && pwd -P)
+  SMART_DEFAULT_LIBEXEC_DIR="${bin}/../libexec"
+fi
+
+echo "AAAAAAAAAAAA111111111"
+
+SMART_LIBEXEC_DIR="${SMART_LIBEXEC_DIR:-$SMART_DEFAULT_LIBEXEC_DIR}"
+SMART_NEW_CONFIG=true
+if [[ -f "${SMART_LIBEXEC_DIR}/smart-config.sh" ]]; then
+  # shellcheck source=./hadoop-hdfs-project/hadoop-hdfs/src/main/bin/smart-config.sh
+  . "${SMART_LIBEXEC_DIR}/smart-config.sh"
+else
+  echo "ERROR: Cannot execute ${SMART_LIBEXEC_DIR}/smart-config.sh." 2>&1
+  exit 1
+fi
+
+echo "AAAAAAAAAAAA2222222222"
+
+# now that we have support code, let's abs MYNAME so we can use it later
+MYNAME=$(hadoop_abs "${MYNAME}")
+
+if [[ $# = 0 ]]; then
+  hadoop_exit_with_usage 1
+fi
+
+SMART_SUBCMD=$1
+shift
+
+echo "AAAAAAAAAAAA33333"
+
+if hadoop_need_reexec hdfs "${SMART_SUBCMD}"; then
+  hadoop_uservar_su hdfs "${SMART_SUBCMD}" \
+    "${MYNAME}" \
+    "--reexec" \
+    "${SMART_USER_PARAMS[@]}"
+  exit $?
+fi
+
+echo "AAAAAAAAAAAA"
+
+hadoop_verify_user_perm "${SMART_SHELL_EXECNAME}" "${SMART_SUBCMD}"
+
+SMART_SUBCMD_ARGS=("$@")
+
+if declare -f hdfs_subcommand_"${SMART_SUBCMD}" >/dev/null 2>&1; then
+  hadoop_debug "Calling dynamically: hdfs_subcommand_${SMART_SUBCMD} ${SMART_SUBCMD_ARGS[*]}"
+  "hdfs_subcommand_${SMART_SUBCMD}" "${SMART_SUBCMD_ARGS[@]}"
+else
+  hdfscmd_case "${SMART_SUBCMD}" "${SMART_SUBCMD_ARGS[@]}"
+fi
+
+echo "BBBBBB"
+
+hadoop_add_client_opts
+
+if [[ ${SMART_WORKER_MODE} = true ]]; then
+  hadoop_common_worker_mode_execute "${SMART_HDFS_HOME}/bin/hdfs" "${SMART_USER_PARAMS[@]}"
+  exit $?
+fi
+
+echo "BBBBBB111111111"
+echo "${SMART_SHELL_EXECNAME}" "===" "${SMART_SUBCMD}"
+
+hadoop_subcommand_opts "${SMART_SHELL_EXECNAME}" "${SMART_SUBCMD}"
+
+echo "BBBBBB2222222"
+echo "SMART_CLASSNAME=" ${SMART_CLASSNAME}
+
+# everything is in globals at this point, so call the generic handler
+hadoop_generic_java_subcmd_handler

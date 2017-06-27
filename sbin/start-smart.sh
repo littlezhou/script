@@ -35,7 +35,6 @@ fi
 
 SMART_LIBEXEC_DIR="${SMART_LIBEXEC_DIR:-$SMART_DEFAULT_LIBEXEC_DIR}"
 # shellcheck disable=SC2034
-echo ======================
 SMART_NEW_CONFIG=true
 if [[ -f "${SMART_LIBEXEC_DIR}/smart-config.sh" ]]; then
   . "${SMART_LIBEXEC_DIR}/smart-config.sh"
@@ -44,22 +43,22 @@ else
   exit 1
 fi
 
-# get arguments
-if [[ $# -ge 1 ]]; then
-  startOpt="$1"
-  shift
-  case "$startOpt" in
-    -upgrade)
-      nameStartOpt="$startOpt"
-    ;;
-    -rollback)
-      dataStartOpt="$startOpt"
-    ;;
-    *)
-      hadoop_exit_with_usage 1
-    ;;
-  esac
-fi
+# # get arguments
+# if [[ $# -ge 1 ]]; then
+#   startOpt="$1"
+#   shift
+#   case "$startOpt" in
+#     -upgrade)
+#       nameStartOpt="$startOpt"
+#     ;;
+#     -rollback)
+#       dataStartOpt="$startOpt"
+#     ;;
+#     *)
+#       hadoop_exit_with_usage 1
+#     ;;
+#   esac
+# fi
 
 
 #Add other possible options
@@ -70,21 +69,23 @@ echo "=== ${nameStartOpt} ==="
 #---------------------------------------------------------
 # Smart server
 
-NAMENODES=$("${SMART_HDFS_HOME}/bin/hdfs" getconf -namenodes 2>/dev/null)
+NAMENODES=$("${SMART_HDFS_HOME}/bin/smart" getconf -namenodes 2>/dev/null)
 
 if [[ -z "${NAMENODES}" ]]; then
   NAMENODES=$(hostname)
 fi
 
-echo "Starting namenodes on [${NAMENODES}]"
-hadoop_uservar_su hdfs namenode "${SMART_HDFS_HOME}/bin/hdfs" \
-    --workers \
-    --config "${SMART_CONF_DIR}" \
-    --hostnames "${NAMENODES}" \
-    --daemon start \
-    namenode ${nameStartOpt}
+echo "NAMENODES=" ${NAMENODES}
 
-SMART_JUMBO_RETCOUNTER=$?
+# echo "Starting namenodes on [${NAMENODES}]"
+# hadoop_uservar_su smart namenode "${SMART_HDFS_HOME}/bin/hdfs" \
+#     --workers \
+#     --config "${SMART_CONF_DIR}" \
+#     --hostnames "${NAMENODES}" \
+#     --daemon start \
+#     namenode ${nameStartOpt}
+
+# SMART_JUMBO_RETCOUNTER=$?
 
 #---------------------------------------------------------
 # Slave smart servers (if any)

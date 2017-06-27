@@ -1643,6 +1643,8 @@ function hadoop_java_exec
 
   export CLASSPATH
   #shellcheck disable=SC2086
+  echo $(env | grep -i "classpath")
+  echo "XXXXX " "${JAVA}" "-Dproc_${command}" "${SMART_OPTS}" "${class}" "$@"
   exec "${JAVA}" "-Dproc_${command}" ${SMART_OPTS} "${class}" "$@"
 }
 
@@ -2500,6 +2502,7 @@ function hadoop_generic_java_subcmd_handler
   # The default/expected way to determine if a daemon is going to run in secure
   # mode is defined by hadoop_detect_priv_subcmd.  If this returns true
   # then setup the secure user var and tell the world we're in secure mode
+  echo "00000000000000000000000"
 
   if hadoop_detect_priv_subcmd "${SMART_SHELL_EXECNAME}" "${SMART_SUBCMD}"; then
     SMART_SUBCMD_SECURESERVICE=true
@@ -2513,6 +2516,7 @@ function hadoop_generic_java_subcmd_handler
     SMART_SECURE_USER="${!secureuser}"
   fi
 
+echo "1111111111111111111"
   # check if we're running in secure mode.
   # breaking this up from the above lets 3rd parties
   # do things a bit different
@@ -2536,7 +2540,7 @@ function hadoop_generic_java_subcmd_handler
     daemon_outfile="${SMART_LOG_DIR}/hadoop-${SMART_IDENT_STRING}-${SMART_SUBCMD}-${HOSTNAME}.out"
     daemon_pidfile="${SMART_PID_DIR}/hadoop-${SMART_IDENT_STRING}-${SMART_SUBCMD}.pid"
   fi
-
+echo "222222222222222222222"
   # are we actually in daemon mode?
   # if yes, use the daemon logger and the appropriate log file.
   if [[ "${SMART_DAEMON_MODE}" != "default" ]]; then
@@ -2547,10 +2551,10 @@ function hadoop_generic_java_subcmd_handler
       SMART_LOGFILE="hadoop-${SMART_IDENT_STRING}-${SMART_SUBCMD}-${HOSTNAME}.log"
     fi
   fi
-
+echo "333333333333333333"
   # finish defining the environment: system properties, env vars, class paths, etc.
   hadoop_finalize
-
+echo "444444444444444444"
   # do the hard work of launching a daemon or just executing our interactive
   # java class
   if [[ "${SMART_SUBCMD_SUPPORTDAEMONIZATION}" = true ]]; then
@@ -2576,6 +2580,7 @@ function hadoop_generic_java_subcmd_handler
     fi
     exit $?
   else
+    echo "${SMART_SUBCMD}=" "${SMART_CLASSNAME}=" "${SMART_SUBCMD_ARGS[@]}="
     hadoop_java_exec "${SMART_SUBCMD}" "${SMART_CLASSNAME}" "${SMART_SUBCMD_ARGS[@]}"
   fi
 }
