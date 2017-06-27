@@ -16,25 +16,8 @@
 # limitations under the License.
 
 
-# Start hadoop dfs daemons.
-# Optinally upgrade or rollback dfs state.
-# Run this on master node.
+#SMART_HOME
 
-## startup matrix:
-#
-# if $EUID != 0, then exec
-# if $EUID =0 then
-#    if hdfs_subcmd_user is defined, su to that user, exec
-#    if hdfs_subcmd_user is not defined, error
-#
-# For secure daemons, this means both the secure and insecure env vars need to be
-# defined.  e.g., HDFS_DATANODE_USER=root HADOOP_SECURE_DN_USER=hdfs
-#
-
-## @description  usage info
-## @audience     private
-## @stability    evolving
-## @replaceable  no
 function hadoop_usage
 {
   echo "Usage: start-smart.sh "
@@ -44,19 +27,70 @@ this="${BASH_SOURCE-$0}"
 bin=$(cd -P -- "$(dirname -- "${this}")" >/dev/null && pwd -P)
 
 # let's locate libexec...
-if [[ -n "${HADOOP_HOME}" ]]; then
-  HADOOP_DEFAULT_LIBEXEC_DIR="${HADOOP_HOME}/libexec"
+if [[ -n "${SMART_HOME}" ]]; then
+  SMART_DEFAULT_LIBEXEC_DIR="${SMART_HOME}/libexec"
 else
-  HADOOP_DEFAULT_LIBEXEC_DIR="${bin}/../libexec"
+  SMART_DEFAULT_LIBEXEC_DIR="${bin}/../libexec"
 fi
 
-HADOOP_LIBEXEC_DIR="${HADOOP_LIBEXEC_DIR:-$HADOOP_DEFAULT_LIBEXEC_DIR}"
+SMART_LIBEXEC_DIR="${SMART_LIBEXEC_DIR:-$SMART_DEFAULT_LIBEXEC_DIR}"
 # shellcheck disable=SC2034
-HADOOP_NEW_CONFIG=true
-if [[ -f "${HADOOP_LIBEXEC_DIR}/hdfs-config.sh" ]]; then
-  . "${HADOOP_LIBEXEC_DIR}/hdfs-config.sh"
+echo ======================
+SMART_NEW_CONFIG=true
+if [[ -f "${SMART_LIBEXEC_DIR}/smart-config.sh" ]]; then
+  . "${SMART_LIBEXEC_DIR}/smart-config.sh"
 else
-  echo "ERROR: Cannot execute ${HADOOP_LIBEXEC_DIR}/hdfs-config.sh." 2>&1
+  echo "ERROR: Cannot execute ${SMART_LIBEXEC_DIR}/smart-config.sh." 2>&1
   exit 1
 fi
 
+# get arguments
+if [[ $# -ge 1 ]]; then
+  startOpt="$1"
+  shift
+  case "$startOpt" in
+    -upgrade)
+      nameStartOpt="$startOpt"
+    ;;
+    -rollback)
+      dataStartOpt="$startOpt"
+    ;;
+    *)
+      hadoop_exit_with_usage 1
+    ;;
+  esac
+fi
+
+
+#Add other possible options
+nameStartOpt="$nameStartOpt $*"
+
+echo "=== ${nameStartOpt} ==="
+
+#---------------------------------------------------------
+# Smart server
+
+NAMENODES=$("${SMART_HDFS_HOME}/bin/hdfs" getconf -namenodes 2>/dev/null)
+
+if [[ -z "${NAMENODES}" ]]; then
+  NAMENODES=$(hostname)
+fi
+
+echo "Starting namenodes on [${NAMENODES}]"
+hadoop_uservar_su hdfs namenode "${SMART_HDFS_HOME}/bin/hdfs" \
+    --workers \
+    --config "${SMART_CONF_DIR}" \
+    --hostnames "${NAMENODES}" \
+    --daemon start \
+    namenode ${nameStartOpt}
+
+SMART_JUMBO_RETCOUNTER=$?
+
+#---------------------------------------------------------
+# Slave smart servers (if any)
+
+#---------------------------------------------------------
+# Agents (if any)
+
+
+# eof
