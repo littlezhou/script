@@ -25,5 +25,8 @@ ${targetdir}/smart-data-0.1-SNAPSHOT.tar.gz:
 my:./lib
 	./sbin/start-smart.sh -D dfs.smart.namenode.rpcserver=hdfs://localhost:9000
 
+mystop:./lib
+	./sbin/stop-smart.sh
+
 ./lib:${rootdir}/lib
 	rm -fr ./lib; rm -fr ./conf; cp -r ${rootdir}/lib .; cp -r ${rootdir}/conf .

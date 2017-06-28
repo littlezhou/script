@@ -16,28 +16,20 @@
 # limitations under the License.
 
 
-#SMART_HOME
-#SAMRT_CONF_DIR
+# Stop hadoop dfs daemons.
+# Run this on master node.
 
-function hadoop_usage
+## @description  usage info
+## @audience     private
+## @stability    evolving
+## @replaceable  no
+function smart_usage
 {
-  echo "Usage: start-smart.sh "
+  echo "Usage: stop-smart.sh"
 }
 
 this="${BASH_SOURCE-$0}"
 bin=$(cd -P -- "$(dirname -- "${this}")" >/dev/null && pwd -P)
-
-#SMART_HOME="${$SMART_HOME:-${bin}/..}"
-if [[ ! -n "${SMART_HOME}" ]]; then
-  SMART_HOME="${bin}/.."
-fi
-
-if [[ ! -n "${SMART_CONF_DIR}" ]]; then
-  SMART_CONF_DIR="${SMART_HOME}/conf"
-fi
-
-echo "SMART_HOME=" ${SMART_HOME}
-echo "SMART_CONF_DIR=" ${SMART_CONF_DIR}
 
 # let's locate libexec...
 if [[ -n "${SMART_HOME}" ]]; then
@@ -56,62 +48,33 @@ else
   exit 1
 fi
 
-# # get arguments
-# if [[ $# -ge 1 ]]; then
-#   startOpt="$1"
-#   shift
-#   case "$startOpt" in
-#     -upgrade)
-#       nameStartOpt="$startOpt"
-#     ;;
-#     -rollback)
-#       dataStartOpt="$startOpt"
-#     ;;
-#     *)
-#       hadoop_exit_with_usage 1
-#     ;;
-#   esac
-# fi
-
-
-#Add other possible options
-nameStartOpt="$nameStartOpt $*"
-
-echo "=== ${nameStartOpt} ==="
-
 #---------------------------------------------------------
-# Smart servers
+# namenodes
 
-# NAMENODES=$("${SMART_HOME}/bin/smart" getconf -namenodes 2>/dev/null)
+# NAMENODES=$("${SMART_HDFS_HOME}/bin/smart" getconf -namenodes 2>/dev/null)
 
 # if [[ -z "${NAMENODES}" ]]; then
 #   NAMENODES=$(hostname)
 # fi
 
-# echo "NAMENODES=" ${NAMENODES}
+# echo "Stopping namenodes on [${NAMENODES}]"
 
-# SMART_NAMENODE_USER=root
-
-# echo "Starting namenodes on [${NAMENODES}]"
-# hadoop_uservar_su smart namenode "${SMART_HOME}/bin/hdfs" \
+#   hadoop_uservar_su smart namenode "${SMART_HDFS_HOME}/bin/smart" \
 #     --workers \
 #     --config "${SMART_CONF_DIR}" \
 #     --hostnames "${NAMENODES}" \
-#     --daemon start \
-#     namenode ${nameStartOpt}
-
-# SMART_JUMBO_RETCOUNTER=$?
-
-#HDFS_DATANODE_USER=root
+#     --daemon stop \
+#     namenode
 
 #---------------------------------------------------------
-# Agents (if any)
-echo "Starting datanodes"
-hadoop_uservar_su smart datanode "${SMART_HOME}/bin/smart" \
-    --workers \
-    --config "${SMART_CONF_DIR}" \
-    --daemon start \
-    datanode ${dataStartOpt}
-(( SMART_JUMBO_RETCOUNTER=SMART_JUMBO_RETCOUNTER + $? ))
+# Agents (using default workers file)
+
+echo "Stopping agents"
+
+hadoop_uservar_su smart datanode "${SMART_HDFS_HOME}/bin/smart" \
+  --workers \
+  --config "${SMART_CONF_DIR}" \
+  --daemon stop \
+  datanode
 
 # eof

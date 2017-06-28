@@ -861,6 +861,7 @@ function hadoop_actual_ssh
   shift
 
   # shellcheck disable=SC2086
+  hadoop_debug "hadoop_actual_ssh: ${SMART_SSH_OPTS}=" "${worker}=" $"${@// /\\ }"
   ssh ${SMART_SSH_OPTS} ${worker} $"${@// /\\ }" 2>&1 | sed "s/^/$worker: /"
 }
 
@@ -1931,6 +1932,8 @@ function hadoop_stop_daemon
   local pid
   local cur_pid
 
+  hadoop_debug "hadoop_stop_daemon ${pidfile}"
+
   if [[ -f "${pidfile}" ]]; then
     pid=$(cat "$pidfile")
 
@@ -2559,6 +2562,7 @@ echo "444444444444444444"
   # java class
   if [[ "${SMART_SUBCMD_SUPPORTDAEMONIZATION}" = true ]]; then
     if [[ "${SMART_SUBCMD_SECURESERVICE}" = true ]]; then
+      hadoop_debug "hadoop_secure_daemon_handler: "
       hadoop_secure_daemon_handler \
         "${SMART_DAEMON_MODE}" \
         "${SMART_SUBCMD}" \
