@@ -126,7 +126,9 @@ function hadoop_verify_entry
 ## @return       0 = priv
 function hadoop_privilege_check
 {
-  [[ "${EUID}" = 0 ]]
+#  [[ "${EUID}" = 0 ]]
+# Disable this temp
+  [[ "${EUID}" != "${EUID}" ]]
 }
 
 ## @description  Execute a command via su when running as root
@@ -886,11 +888,8 @@ function hadoop_connect_to_hosts
   elif [[ -z "${SMART_WORKER_NAMES}" ]]; then
     if [[ -n "${SMART_WORKERS}" ]]; then
       worker_file=${SMART_WORKERS}
-    elif [[ -f "${SMART_CONF_DIR}/workers" ]]; then
-      worker_file=${SMART_CONF_DIR}/workers
-    elif [[ -f "${SMART_CONF_DIR}/slaves" ]]; then
-      hadoop_error "WARNING: 'slaves' file has been deprecated. Please use 'workers' file instead."
-      worker_file=${SMART_CONF_DIR}/slaves
+    elif [[ -f "${SMART_CONF_DIR}/agents" ]]; then
+      worker_file=${SMART_CONF_DIR}/agents
     fi
   fi
 
@@ -973,6 +972,7 @@ function hadoop_common_worker_mode_execute
     echo "${argv[@]}"
     return
   fi
+  hadoop_debug "hadoop_common_worker_mode_execute args=" "${argv[@]}"
   hadoop_connect_to_hosts -- "${argv[@]}"
 }
 

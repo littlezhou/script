@@ -17,6 +17,7 @@
 
 
 #SMART_HOME
+#SAMRT_CONF_DIR
 
 function hadoop_usage
 {
@@ -25,6 +26,18 @@ function hadoop_usage
 
 this="${BASH_SOURCE-$0}"
 bin=$(cd -P -- "$(dirname -- "${this}")" >/dev/null && pwd -P)
+
+#SMART_HOME="${$SMART_HOME:-${bin}/..}"
+if [[ ! -n "${SMART_HOME}" ]]; then
+  SMART_HOME="${bin}/.."
+fi
+
+if [[ ! -n "${SMART_CONF_DIR}" ]]; then
+  SMART_CONF_DIR="${SMART_HOME}/conf"
+fi
+
+echo "SMART_HOME=" ${SMART_HOME}
+echo "SMART_CONF_DIR=" ${SMART_CONF_DIR}
 
 # let's locate libexec...
 if [[ -n "${SMART_HOME}" ]]; then
@@ -69,16 +82,18 @@ echo "=== ${nameStartOpt} ==="
 #---------------------------------------------------------
 # Smart server
 
-NAMENODES=$("${SMART_HDFS_HOME}/bin/smart" getconf -namenodes 2>/dev/null)
+# NAMENODES=$("${SMART_HOME}/bin/smart" getconf -namenodes 2>/dev/null)
 
-if [[ -z "${NAMENODES}" ]]; then
-  NAMENODES=$(hostname)
-fi
+# if [[ -z "${NAMENODES}" ]]; then
+#   NAMENODES=$(hostname)
+# fi
 
-echo "NAMENODES=" ${NAMENODES}
+# echo "NAMENODES=" ${NAMENODES}
+
+# SMART_NAMENODE_USER=root
 
 # echo "Starting namenodes on [${NAMENODES}]"
-# hadoop_uservar_su smart namenode "${SMART_HDFS_HOME}/bin/hdfs" \
+# hadoop_uservar_su smart namenode "${SMART_HOME}/bin/hdfs" \
 #     --workers \
 #     --config "${SMART_CONF_DIR}" \
 #     --hostnames "${NAMENODES}" \
@@ -87,8 +102,27 @@ echo "NAMENODES=" ${NAMENODES}
 
 # SMART_JUMBO_RETCOUNTER=$?
 
+# echo "Starting namenodes on [${NAMENODES}]"
+# hadoop_uservar_su smart namenode "${SMART_HOME}/bin/hdfs" \
+#     --workers \
+#     --config "${SMART_CONF_DIR}" \
+#     --hostnames "${NAMENODES}" \
+#     --daemon start \
+#     namenode ${nameStartOpt}
+
+# SMART_JUMBO_RETCOUNTER=$?
+
+#HDFS_DATANODE_USER=root
+
 #---------------------------------------------------------
 # Slave smart servers (if any)
+echo "Starting datanodes"
+hadoop_uservar_su hdfs datanode "${SMART_HOME}/bin/smart" \
+    --workers \
+    --config "${SMART_CONF_DIR}" \
+    --daemon start \
+    datanode ${dataStartOpt}
+(( SMART_JUMBO_RETCOUNTER=SMART_JUMBO_RETCOUNTER + $? ))
 
 #---------------------------------------------------------
 # Agents (if any)

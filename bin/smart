@@ -262,7 +262,8 @@ echo "BBBBBB"
 hadoop_add_client_opts
 
 if [[ ${SMART_WORKER_MODE} = true ]]; then
-  hadoop_common_worker_mode_execute "${SMART_HDFS_HOME}/bin/hdfs" "${SMART_USER_PARAMS[@]}"
+  echo "${SMART_HDFS_HOME}/bin/smart=" "${SMART_USER_PARAMS[@]}"
+  hadoop_common_worker_mode_execute "${SMART_HDFS_HOME}/bin/smart" "${SMART_USER_PARAMS[@]}"
   exit $?
 fi
 
