@@ -274,6 +274,8 @@ hadoop_subcommand_opts "${SMART_SHELL_EXECNAME}" "${SMART_SUBCMD}"
 
 echo "BBBBBB2222222"
 echo "SMART_CLASSNAME=" ${SMART_CLASSNAME}
+echo "SMART_OPTS=" ${SMART_OPTS}
+#Add custom (program)_(command)_OPTS to SMART_OPTS.
 
 # everything is in globals at this point, so call the generic handler
 hadoop_generic_java_subcmd_handler

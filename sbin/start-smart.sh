@@ -106,7 +106,7 @@ echo "=== ${nameStartOpt} ==="
 
 #---------------------------------------------------------
 # Agents (if any)
-echo "Starting datanodes"
+echo "Starting agents"
 hadoop_uservar_su smart datanode "${SMART_HOME}/bin/smart" \
     --workers \
     --config "${SMART_CONF_DIR}" \

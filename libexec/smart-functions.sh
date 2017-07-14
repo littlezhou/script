@@ -1705,7 +1705,11 @@ function hadoop_start_daemon_wrapper
 
   local counter
 
+  echo "999999999 outfile=" "${outfile}"
+
   hadoop_rotate_log "${outfile}"
+
+  echo "99999999911111111"
 
   hadoop_start_daemon "${daemonname}" \
     "$class" \
@@ -1721,6 +1725,8 @@ function hadoop_start_daemon_wrapper
     (( counter++ ))
   done
 
+  echo "99999999922222222"
+
   # this is for daemon pid creation
   #shellcheck disable=SC2086
   echo $! > "${pidfile}" 2>/dev/null
@@ -1728,22 +1734,25 @@ function hadoop_start_daemon_wrapper
     hadoop_error "ERROR:  Cannot write ${daemonname} pid ${pidfile}."
   fi
 
+echo "999999999333333333"
   # shellcheck disable=SC2086
   renice "${SMART_NICENESS}" $! >/dev/null 2>&1
   if [[ $? -gt 0 ]]; then
     hadoop_error "ERROR: Cannot set priority of ${daemonname} process $!"
   fi
-
+echo "99999999944444444"
   # shellcheck disable=SC2086
   disown %+ >/dev/null 2>&1
   if [[ $? -gt 0 ]]; then
     hadoop_error "ERROR: Cannot disconnect ${daemonname} process $!"
   fi
   sleep 1
+echo "99999999955555555"
 
   # capture the ulimit output
   ulimit -a >> "${outfile}" 2>&1
 
+echo "999999999666666666"
   # shellcheck disable=SC2086
   if ! ps -p $! >/dev/null 2>&1; then
     return 1
@@ -2033,8 +2042,10 @@ function hadoop_daemon_handler
 
     ##COMPAT  -- older hadoops would also start daemons by default
     start|default)
+      echo "888888888"
       hadoop_verify_piddir
       hadoop_verify_logdir
+      echo "88888888811111111"
       hadoop_status_daemon "${daemon_pidfile}"
       if [[ $? == 0  ]]; then
         hadoop_error "${daemonname} is running as process $(cat "${daemon_pidfile}").  Stop it first."
@@ -2045,6 +2056,7 @@ function hadoop_daemon_handler
       fi
       ##COMPAT  - differenticate between --daemon start and nothing
       # "nothing" shouldn't detach
+      echo "888888888333333333 daemonmode="${daemonmode}
       if [[ "$daemonmode" = "default" ]]; then
         hadoop_start_daemon "${daemonname}" "${class}" "${daemon_pidfile}" "$@"
       else
@@ -2562,7 +2574,7 @@ echo "444444444444444444"
   # java class
   if [[ "${SMART_SUBCMD_SUPPORTDAEMONIZATION}" = true ]]; then
     if [[ "${SMART_SUBCMD_SECURESERVICE}" = true ]]; then
-      hadoop_debug "hadoop_secure_daemon_handler: "
+      echo "hadoop_secure_daemon_handler: "
       hadoop_secure_daemon_handler \
         "${SMART_DAEMON_MODE}" \
         "${SMART_SUBCMD}" \
@@ -2574,6 +2586,8 @@ echo "444444444444444444"
         "${priv_errfile}" \
         "${SMART_SUBCMD_ARGS[@]}"
     else
+      echo "hadoop_daemon_handler: ${SMART_DAEMON_MODE} = ${SMART_SUBCMD} = ${SMART_CLASSNAME} = ${daemon_pidfile} = ${daemon_outfile} =" " ${SMART_SUBCMD_ARGS[@]}"
+
       hadoop_daemon_handler \
         "${SMART_DAEMON_MODE}" \
         "${SMART_SUBCMD}" \
@@ -2582,6 +2596,7 @@ echo "444444444444444444"
         "${daemon_outfile}" \
         "${SMART_SUBCMD_ARGS[@]}"
     fi
+    echo "55555555555555"
     exit $?
   else
     echo "${SMART_SUBCMD}=" "${SMART_CLASSNAME}=" "${SMART_SUBCMD_ARGS[@]}="
